@@ -1,3 +1,7 @@
 node_modules
 uploads/
 processed/
+previews/
+waveforms/
+luts/
+proxies/

@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TH Railtime Video Studio</title>
+    <title>TH Realtime Video Studio</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
         
         :root {
@@ -41,6 +42,18 @@
             border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.2s ease;
         }
+        
+        .transition-visual {
+            position: absolute;
+            height: 100%;
+            top: 0;
+            right: 0;
+            background: rgba(99, 102, 241, 0.5);
+            backdrop-filter: blur(2px);
+            border-left: 1px solid var(--accent-purple);
+            pointer-events: none;
+            z-index: 12;
+        }
 
         .clip:hover {
             transform: translateY(-1px);
@@ -56,6 +69,12 @@
         .video-clip { 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white; 
+        }
+
+        .adjustment-clip {
+            background: linear-gradient(135deg, rgba(236, 72, 153, 0.8) 0%, rgba(219, 39, 119, 0.8) 100%);
+            color: white;
+            border-style: dashed;
         }
 
         .audio-clip { 
@@ -99,7 +118,7 @@
             box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
-        #interactive-overlay { 
+        #interactive-overlay, #mask-overlay-canvas { 
             position: absolute; 
             top: 0; 
             left: 0; 
@@ -143,13 +162,20 @@
             transition: all 0.2s ease;
             box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
         }
+        
+        .modern-button:disabled {
+            background: #334155;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
 
-        .modern-button:hover {
+        .modern-button:hover:not(:disabled) {
             transform: translateY(-1px);
             box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
         }
 
-        .modern-button:active {
+        .modern-button:active:not(:disabled) {
             transform: translateY(0);
         }
 
@@ -192,6 +218,122 @@
             border-radius: 12px 12px 0 0;
         }
 
+        .waveform-container {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .waveform-canvas {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        .clip-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: calc(100% - 16px);
+        }
+
+        .audio-clip .waveform-container {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);
+        }
+
+        .audio-clip.selected .waveform-container {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2) 0%, rgba(14, 165, 233, 0.2) 100%);
+        }
+
+        .color-correction-panel {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        .color-correction-panel legend {
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        .color-slider {
+            background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            height: 6px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .color-slider:hover {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 8px rgba(99, 102, 241, 0.3);
+        }
+
+        .color-slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #4f46e5 100%);
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        .color-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+        }
+
+        .color-slider::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-purple) 0%, #4f46e5 100%);
+            border: 2px solid white;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .creative-effects-panel {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .creative-effects-panel legend {
+            color: var(--accent-green);
+            font-weight: 600;
+        }
+
+        #preview-video {
+            background: #000;
+            object-fit: contain;
+        }
+
+        #preview-video::-webkit-media-controls {
+            background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.8) 100%);
+        }
+
+        #preview-video::-webkit-media-controls-panel {
+            background: transparent;
+        }
+
+        #preview-content {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            border: 2px solid var(--border-color);
+        }
+
+        #preview-image, #preview-video {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+        }
+
         
         ::-webkit-scrollbar {
             width: 8px;
@@ -213,7 +355,7 @@
         }
 
         
-        .media-item {
+        .media-item, .transition-item {
             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
@@ -222,27 +364,26 @@
             cursor: pointer;
         }
 
-        .media-item:hover {
+        .media-item:hover, .transition-item:hover {
             background: rgba(255, 255, 255, 0.05);
             border-color: var(--accent-blue);
             transform: translateY(-1px);
         }
-
         
-        .property-group {
-            background: rgba(255, 255, 255, 0.02);
+        .effect-item {
+             background: var(--bg-tertiary);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             padding: 12px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border-left: 4px solid var(--accent-green);
         }
 
-        .property-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 6px;
+        .effect-item:hover {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--accent-green);
+            transform: translateY(-1px);
         }
 
         .property-input {
@@ -261,7 +402,34 @@
             box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
         }
 
+        select.property-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .form-checkbox {
+            appearance: none;
+            background-color: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            padding: 0;
+            display: inline-block;
+            vertical-align: middle;
+            width: 1em;
+            height: 1em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
         
+        .form-checkbox:checked {
+            background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z'/%3e%3c/svg%3e");
+            background-color: var(--accent-purple);
+            border-color: var(--accent-purple);
+        }
+
         header {
             background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
             backdrop-filter: blur(16px);
@@ -283,6 +451,20 @@
             background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
             border-top: 1px solid var(--border-color);
         }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem; /* 12px */
+            padding: 0 1rem; /* 16px */
+            height: 100%;
+        }
+
+        .control-divider {
+            width: 1px;
+            height: 24px;
+            background-color: var(--border-color);
+        }
 
         
         #time-display {
@@ -294,6 +476,172 @@
             font-weight: bold;
             color: var(--accent-blue);
         }
+
+        .track {
+            margin-bottom: 1rem !important; /* 16px */
+        }
+
+        #marker-track {
+            height: 24px;
+            border-bottom: 1px solid var(--border-color);
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.02) 75%, rgba(255,255,255,0.02)), repeating-linear-gradient(-45deg, rgba(255,255,255,0.02) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.02) 75%, rgba(255,255,255,0.02));
+            background-size: 8px 8px;
+        }
+        
+        .marker {
+            position: absolute;
+            top: 4px;
+            width: 15px;
+            height: 15px;
+            background-color: var(--accent-purple);
+            cursor: pointer;
+            clip-path: polygon(50% 100%, 0 0, 100% 0);
+            transform: translateX(-50%);
+            z-index: 15;
+        }
+
+        .marker-label {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            font-size: 10px;
+            padding: 2px 5px;
+            border-radius: 4px;
+            display: none; 
+        }
+        
+        .marker:hover .marker-label {
+            display: block; 
+        }
+        
+        .audio-mixer-panel {
+            writing-mode: vertical-lr;
+            transform: rotate(180deg);
+            width: 20px;
+        }
+
+        .audio-mixer-panel input[type="range"] {
+            width: 80px;
+            height: 6px;
+        }
+        
+        .pan-slider {
+            -webkit-appearance: none;
+            width: 80px;
+            height: 6px;
+            background: linear-gradient(90deg, #1e293b 0%, #334155 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .pan-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            cursor: pointer;
+        }
+        
+        #timeline-thumbnail-preview {
+            width: 160px;
+            height: 90px;
+            border: 2px solid var(--accent-blue);
+            border-radius: 4px;
+            background-color: #000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .keyframe-button {
+            cursor: pointer;
+            font-family: monospace;
+            padding: 0 8px;
+            color: var(--text-secondary);
+            transition: color 0.2s ease;
+        }
+        .keyframe-button.active {
+            color: var(--accent-blue);
+        }
+
+        .keyframe-timeline {
+            position: relative;
+            width: 100%;
+            height: 20px;
+            background: var(--bg-primary);
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+        .keyframe-dot {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-blue);
+            border: 1px solid white;
+            border-radius: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            z-index: 5;
+        }
+        
+        #mask-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 50;
+            background: rgba(15, 15, 35, 0.8);
+            backdrop-filter: blur(8px);
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .color-wheel-container {
+            display: grid;
+            grid-template-columns: 1fr 20px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .color-wheel {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: conic-gradient(from 90deg, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%));
+            cursor: crosshair;
+        }
+
+        .color-wheel-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid white;
+            border-radius: 50%;
+            background-color: transparent;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .scopes-panel {
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border-color);
+            transition: all 0.3s ease-in-out;
+        }
+
+        .scope-canvas {
+            background-color: var(--bg-primary);
+            border-radius: 4px;
+        }
+
     </style>
 </head>
 <body class="text-white font-sans flex flex-col h-screen" style="background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);">
@@ -303,7 +651,7 @@
             <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
                 <img src="Logo.png" alt="Logo" class="w-full h-full object-contain">
             </div>
-            <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">TH Railtime Video Studio</h1>
+            <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">TH Realtime Video Studio</h1>
         </div>
         <button id="export-button" class="modern-button success">
             <svg class="w-4 h-4 inline-block mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -315,14 +663,21 @@
 
     <div class="flex flex-grow overflow-hidden">
         <aside class="w-1/4 p-6 flex flex-col" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);">
-            <div id="media-bin-container" class="mb-6">
+            
+            <div id="tabs-container" class="flex mb-4 border-b border-gray-700">
+                <button class="tab-button active py-2 px-4 text-sm font-medium" data-tab="media-bin-tab">Media</button>
+                <button class="tab-button py-2 px-4 text-sm font-medium" data-tab="effects-bin-tab">Effects</button>
+                <button class="tab-button py-2 px-4 text-sm font-medium" data-tab="transitions-bin-tab">Transitions</button>
+            </div>
+            
+            <div id="media-bin-tab" class="tab-content active">
                 <div class="flex items-center space-x-2 mb-4">
-                    <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                     <svg class="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13V12a1 1 0 011-1z" clip-rule="evenodd"/>
                     </svg>
                     <h2 class="text-lg font-bold text-white">Media Bin</h2>
                 </div>
-                <div id="media-bin" class="h-64 glass rounded-xl p-4 overflow-y-auto space-y-3 border"></div>
+                <div id="media-bin" class="h-40 glass rounded-xl p-4 overflow-y-auto space-y-3 border"></div>
                 <input type="file" id="file-input" class="hidden" multiple />
                 <button id="import-button" class="mt-4 w-full modern-button secondary">
                     <svg class="w-4 h-4 inline-block mr-2" fill="currentColor" viewBox="0 0 20 20">
@@ -332,15 +687,43 @@
                 </button>
             </div>
             
-            <div id="properties-panel" class="flex-grow hidden overflow-y-auto">
+            <div id="effects-bin-tab" class="tab-content hidden">
                 <div class="flex items-center space-x-2 mb-4">
-                    <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                     <svg class="w-5 h-5 text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M5 2a1 1 0 00-1 1v1.586l-1.707 1.707A1 1 0 003 8v6a1 1 0 001 1h2a1 1 0 001-1V8a1 1 0 00-.293-.707L5 5.586V3a1 1 0 00-1-1zm0 3.414L6.293 7.707A1 1 0 007 8v5a1 1 0 001 1h2a1 1 0 001-1V8a1 1 0 00-.293-.707L9 5.586V3a1 1 0 00-1-1H5v2.414zM15 2a1 1 0 00-1 1v1.586l-1.707 1.707A1 1 0 0013 8v6a1 1 0 001 1h2a1 1 0 001-1V8a1 1 0 00-.293-.707L15 5.586V3a1 1 0 00-1-1zm0 3.414L16.293 7.707A1 1 0 0017 8v5a1 1 0 001 1h2a1 1 0 001-1V8a1 1 0 00-.293-.707L19 5.586V3a1 1 0 00-1-1h-4v2.414z" clip-rule="evenodd" />
                     </svg>
-                    <h2 class="text-lg font-bold text-white">Properties</h2>
+                    <h2 class="text-lg font-bold text-white">Effects Bin</h2>
                 </div>
-                <div id="properties-content" class="modern-card space-y-4 mb-4"></div>
-                <button id="delete-clip-button" class="w-full modern-button danger">
+                <div id="effects-bin" class="h-40 glass rounded-xl p-4 overflow-y-auto space-y-3 border"></div>
+            </div>
+            
+            <div id="transitions-bin-tab" class="tab-content hidden">
+                 <div class="flex items-center space-x-2 mb-4">
+                     <svg class="w-5 h-5 text-purple-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 4a1 1 0 00-2 0v2.586C3 7.928 4.072 9 5.414 9H8a1 1 0 000-2H5.414A1.414 1.414 0 014 5.586V4zM15 16a1 1 0 002 0v-2.586c0-1.342-1.072-2.414-2.414-2.414H12a1 1 0 100 2h2.586A1.414 1.414 0 0116 14.414V16zM5 16a1 1 0 102 0v-2.586A1.414 1.414 0 015.586 12H8a1 1 0 100-2H5.414C4.072 10 3 11.072 3 12.414V16zM15 4a1 1 0 10-2 0v2.586A1.414 1.414 0 0114.414 8H12a1 1 0 100 2h2.586C15.928 10 17 8.928 17 7.586V4z" />
+                     </svg>
+                     <h2 class="text-lg font-bold text-white">Transitions Bin</h2>
+                 </div>
+                 <div id="transitions-bin" class="h-40 glass rounded-xl p-4 overflow-y-auto space-y-3 border"></div>
+            </div>
+
+            <div id="properties-panel-wrapper" class="flex-grow hidden flex-col overflow-y-auto pr-2 mt-6">
+                <div id="properties-panel">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <svg class="w-5 h-5 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/>
+                        </svg>
+                        <h2 class="text-lg font-bold text-white">Properties</h2>
+                    </div>
+                    <div id="properties-content" class="modern-card space-y-4 mb-4"></div>
+                </div>
+
+                <div id="keyframe-editor-panel" class="hidden">
+                    <h3 class="text-md font-bold text-white my-4">Keyframe Editor</h3>
+                    <div id="keyframe-editor-content" class="modern-card space-y-4"></div>
+                </div>
+
+                <button id="delete-clip-button" class="mt-4 w-full modern-button danger">
                     <svg class="w-4 h-4 inline-block mr-2" fill="currentColor" viewBox="0 0 20 20">
                         <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd"/>
                     </svg>
@@ -349,93 +732,151 @@
             </div>
         </aside>
 
-        <main class="w-3/4 flex flex-col">
-            <div id="preview-window" class="flex-grow flex items-center justify-center relative overflow-hidden" style="background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 100%);">
-                <div class="absolute inset-0 opacity-5">
-                    <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.3) 0%, transparent 50%);"></div>
-                </div>
-                
-                <div id="preview-content" class="relative rounded-xl overflow-hidden shadow-2xl" style="aspect-ratio: 16/9; max-width: 90%; max-height: 90%;">
-                    <img id="preview-image" class="max-w-full max-h-full block rounded-xl">
-                    <video id="preview-video" class="max-w-full max-h-full block hidden rounded-xl"></video>
-                    <div id="interactive-overlay" class="hidden rounded-xl">
-                        <div id="selection-box">
-                            <div class="selection-handle nw"></div><div class="selection-handle ne"></div>
-                            <div class="selection-handle sw"></div><div class="selection-handle se"></div>
+        <main class="flex-grow flex flex-col">
+            <div class="flex-grow flex">
+                <div id="preview-section" class="flex-grow flex flex-col">
+                    <div id="preview-window" class="flex-grow flex items-center justify-center relative overflow-hidden" style="background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 100%);">
+                        <div class="absolute inset-0 opacity-5">
+                            <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.3) 0%, transparent 50%);"></div>
+                        </div>
+                        
+                        <div id="preview-content" class="relative rounded-xl overflow-hidden shadow-2xl" style="aspect-ratio: 16/9; max-width: 90%; max-height: 90%;">
+                            <img id="preview-image" class="w-full h-full object-contain block rounded-xl" crossOrigin="anonymous">
+                            <video id="preview-video" class="w-full h-full object-contain block hidden rounded-xl" crossOrigin="anonymous"></video>
+                            <canvas id="mask-overlay-canvas" class="hidden"></canvas>
+                            <div id="interactive-overlay" class="hidden rounded-xl">
+                                <div id="selection-box">
+                                    <div class="selection-handle nw"></div><div class="selection-handle ne"></div>
+                                    <div class="selection-handle sw"></div><div class="selection-handle se"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="mask-controls" class="hidden space-y-2">
+                            <p class="text-xs font-bold text-center text-blue-300">Mask Editing Mode</p>
+                            <button id="finish-mask-button" class="modern-button success w-full text-xs !py-1 !px-2">Finish Editing</button>
+                            <button id="clear-mask-button" class="modern-button danger w-full text-xs !py-1 !px-2">Clear Mask</button>
+                        </div>
+                        
+                        <div id="status-overlay" class="hidden absolute inset-0 glass flex-col items-center justify-center p-8 text-center z-30 rounded-xl m-4">
+                            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center mb-6">
+                                <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <h3 id="status-message" class="text-2xl font-bold mb-6"></h3>
+                            <div class="w-full max-w-md">
+                                <div class="bg-gray-700 rounded-full h-3 overflow-hidden">
+                                    <div id="status-progress" class="bg-gradient-to-r from-blue-400 to-purple-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <a id="download-link" href="#" class="hidden mt-8 modern-button success">
+                                <svg class="w-4 h-4 inline-block mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                </svg>
+                                Download Video
+                            </a>
                         </div>
                     </div>
                 </div>
-                
-                <div id="status-overlay" class="hidden absolute inset-0 glass flex-col items-center justify-center p-8 text-center z-30 rounded-xl m-4">
-                    <div class="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm3 2h6v4H7V5zm8 8v2h1v-2h-1zm-2-2H7v4h6v-4z" clip-rule="evenodd"/>
-                        </svg>
-                    </div>
-                    <h3 id="status-message" class="text-2xl font-bold mb-6"></h3>
-                    <div class="w-full max-w-md">
-                        <div class="bg-gray-700 rounded-full h-3 overflow-hidden">
-                            <div id="status-progress" class="bg-gradient-to-r from-blue-400 to-purple-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
-                        </div>
-                    </div>
-                    <a id="download-link" href="#" class="hidden mt-8 modern-button success">
-                        <svg class="w-4 h-4 inline-block mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                        </svg>
-                        Download Video
-                    </a>
-                </div>
+
             </div>
 
-            <div class="flex-shrink-0 control-panel p-4 flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-3">
-                        <button id="play-pause-button" class="modern-button secondary w-20 flex items-center justify-center">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+            <div class="flex-shrink-0 control-panel p-2 flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="control-group">
+                        <button id="play-pause-button" title="Play (Space)" class="modern-button secondary !p-2">
+                            <svg id="play-icon" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                             </svg>
-                            <span class="ml-2">Play</span>
-                        </button>
-                        <button id="stop-button" class="modern-button secondary">
-                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z" clip-rule="evenodd"/>
+                            <svg id="pause-icon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M5.75 4.5a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75zM14.25 4.5a.75.75 0 00-.75.75v10.5a.75.75 0 001.5 0V5.25a.75.75 0 00-.75-.75z" />
+                            </svg>
+                            <svg id="loading-icon" class="w-5 h-5 hidden animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                             </svg>
                         </button>
-                        <div id="time-display" class="text-sm font-mono">00:00.0</div>
+                        <button id="stop-button" title="Stop" class="modern-button secondary !p-2">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M5.25 3A2.25 2.25 0 003 5.25v9.5A2.25 2.25 0 005.25 17h9.5A2.25 2.25 0 0017 14.75v-9.5A2.25 2.25 0 0014.75 3h-9.5z" /></svg>
+                        </button>
                     </div>
+
+                    <div class="control-divider"></div>
+                    
+                    <div class="control-group">
+                        <button id="undo-button" title="Undo (Ctrl+Z)" class="modern-button secondary !p-2" disabled>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        </button>
+                        <button id="redo-button" title="Redo (Ctrl+Y)" class="modern-button secondary !p-2" disabled>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </button>
+                    </div>
+
+                    <div class="control-divider"></div>
+
+                    <div class="control-group">
+                        <button id="split-clip-button" title="Split Clip at Playhead" class="modern-button secondary !p-2" disabled>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.121 14.121L19 19M4.929 4.929L9.879 9.879m0 0L12 12m-2.121-2.121L12 12m0 0L9.879 14.121 12 12m2.121 2.121L12 12m0 0L14.121 9.879 12 12m-2.121 2.121L12 12"></path></svg>
+                        </button>
+                        <div id="ripple-delete-container" class="flex items-center" title="Toggle Ripple Delete">
+                            <input type="checkbox" id="ripple-delete-toggle" class="form-checkbox">
+                            <label for="ripple-delete-toggle" class="ml-2 text-xs font-semibold text-gray-300">Ripple</label>
+                        </div>
+                    </div>
+
+                     <div class="control-divider"></div>
+
+                    <div class="control-group">
+                         <div id="time-display" class="text-sm font-mono">00:00.0</div>
+                    </div>
+
                 </div>
                 
-                <div class="flex items-center space-x-3">
-                    <div class="text-sm font-semibold text-gray-300 flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
-                        </svg>
-                        Tools
+                <div class="flex items-center">
+                    <div class="control-group">
+                        <!-- === PROXY TOGGLE UI === -->
+                        <div id="proxy-toggle-container" class="flex items-center" title="Toggle proxy files for better performance">
+                            <input type="checkbox" id="use-proxies-toggle" class="form-checkbox">
+                            <label for="use-proxies-toggle" class="ml-2 text-xs font-semibold text-gray-300">Use Proxies</label>
+                        </div>
+                        <div class="control-divider"></div>
+                        <!-- ===================== -->
+                        <label class="text-xs font-semibold uppercase text-gray-400">Zoom</label>
+                        <button id="zoom-out-button" title="Zoom Out" class="modern-button secondary !p-2">
+                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6" /></svg>
+                        </button>
+                        <button id="zoom-in-button" title="Zoom In" class="modern-button secondary !p-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                        </button>
                     </div>
-                    <button id="add-video-track-button" class="modern-button secondary text-xs">
-                        <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 6a2 2 0 012-2h6l2 2h6a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
-                        </svg>
-                        Video Track
-                    </button>
-                    <button id="add-audio-track-button" class="modern-button secondary text-xs">
-                        <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM15.657 6.343a1 1 0 011.414 0A9.972 9.972 0 0119 12a9.972 9.972 0 01-1.929 5.657 1 1 0 11-1.414-1.414A7.971 7.971 0 0017 12c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414zm-2.829 2.828a1 1 0 011.415 0A5.983 5.983 0 0115 12a5.984 5.984 0 01-.757 2.828 1 1 0 11-1.415-1.414A3.987 3.987 0 0013 12a3.988 3.988 0 00-.172-1.414 1 1 0 010-1.415z" clip-rule="evenodd"/>
-                        </svg>
-                        Audio Track
-                    </button>
-                    <button id="add-text-clip-button" class="modern-button secondary text-xs">
-                        <svg class="w-3 h-3 inline-block mr-1" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zM7 8H5v2h2V8zm2 0h2v2H9V8zm6 0h-2v2h2V8z" clip-rule="evenodd"/>
-                        </svg>
-                        Text Clip
-                    </button>
+
+                    <div class="control-divider"></div>
+
+                    <div class="control-group">
+                        <button id="add-video-track-button" class="modern-button secondary text-xs">Video Track</button>
+                        <button id="add-audio-track-button" class="modern-button secondary text-xs">Audio Track</button>
+                        <button id="add-text-clip-button" class="modern-button secondary text-xs">Text Clip</button>
+                        <button id="add-adjustment-layer-button" class="modern-button secondary text-xs !bg-pink-600/50">Adj. Layer</button>
+                    </div>
                 </div>
             </div>
             
-            <div id="timeline-container" class="h-64 border-t-2 p-4 space-y-3 overflow-auto relative rounded-t-xl" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border-top: 1px solid var(--border-color);">
-                <div id="playhead"></div>
+            <div id="timeline-wrapper" class="flex-shrink-0 h-64 border-t-2 rounded-t-xl overflow-hidden flex" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border-top: 1px solid var(--border-color);">
+                <div id="track-headers" class="flex-shrink-0 p-4 pt-0 space-y-3 bg-gray-800"></div>
+                <div id="timeline-scroll-pane" class="flex-grow overflow-x-auto overflow-y-hidden relative">
+                    <div id="timeline-container" class="p-4 pt-0 space-y-3 relative w-fit min-h-full">
+                        <div id="marker-track" class="h-6 w-full sticky top-0 left-0 z-20" title="Double-click to add a marker"></div>
+                        <div id="playhead"></div>
+                    </div>
+                    
+                    <div id="timeline-thumbnail-preview" class="hidden absolute z-30 pointer-events-none transform -translate-x-1/2 -translate-y-full">
+                        <img id="timeline-thumbnail-img" src="" class="w-full h-full object-contain rounded-md bg-black">
+                        <span id="timeline-thumbnail-time" class="absolute bottom-1 right-1 text-xs text-white bg-black bg-opacity-50 px-1 rounded"></span>
+                    </div>
+                </div>
             </div>
+
         </main>
     </div>
     
