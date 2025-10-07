@@ -1,7 +1,328 @@
-node_modules
+# TH Realtime Video Studio - Git Ignore File
+
+# ===========================================
+# Dependencies & Package Managers
+# ===========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Package manager lock files (keep package-lock.json for consistency)
+yarn.lock
+pnpm-lock.yaml
+
+# ===========================================
+# Environment & Configuration
+# ===========================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Configuration files with sensitive data
+config/local.json
+config/production.json
+config/development.json
+
+# ===========================================
+# Media Files & Generated Content
+# ===========================================
+# User uploaded media
 uploads/
-processed/
-previews/
-waveforms/
-luts/
+uploads/*
+
+# Generated proxy files
 proxies/
+proxies/*
+
+# Final rendered videos
+processed/
+processed/*
+
+# Real-time preview files
+previews/
+previews/*
+
+# Timeline thumbnails
+thumbnails/
+thumbnails/*
+
+# Audio waveform data
+waveforms/
+waveforms/*
+
+# Look-Up Table files (user uploaded)
+luts/
+luts/*
+
+# Temporary media files
+temp_media/
+temp_renders/
+temp_previews/
+
+# ===========================================
+# Testing & Coverage
+# ===========================================
+# Coverage reports
+coverage/
+.nyc_output/
+coverage.lcov
+
+# Jest cache
+.jest-cache/
+
+# Test results
+test-results/
+junit.xml
+
+# ===========================================
+# Build & Distribution
+# ===========================================
+# Build outputs
+dist/
+build/
+out/
+
+# Distribution packages
+*.tgz
+*.tar.gz
+
+# ===========================================
+# Logs & Debugging
+# ===========================================
+# Application logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Debug files
+debug.log
+error.log
+access.log
+
+# ===========================================
+# IDE & Editor Files
+# ===========================================
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*~
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===========================================
+# Operating System Files
+# ===========================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===========================================
+# Temporary Files & Directories
+# ===========================================
+# Temporary directories
+tmp/
+temp/
+.tmp/
+.temp/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+
+# ===========================================
+# FFmpeg & Video Processing
+# ===========================================
+# FFmpeg temporary files
+ffmpeg2pass-*
+*.ffindex
+
+# Video processing temporary files
+*.tmp
+*.temp
+*.part
+
+# ===========================================
+# Database & Storage
+# ===========================================
+# SQLite databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Database dumps
+*.sql
+*.dump
+
+# ===========================================
+# Security & Sensitive Files
+# ===========================================
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Certificates
+*.crt
+*.cer
+*.der
+
+# API keys and secrets
+secrets.json
+.secrets
+api-keys.json
+
+# ===========================================
+# Documentation Build
+# ===========================================
+# Generated documentation
+docs/build/
+docs/dist/
+site/
+
+# ===========================================
+# Plugin Development
+# ===========================================
+# Plugin development files
+plugins/dev/
+plugins/test/
+plugins/*.test.js
+plugins/*.spec.js
+
+# ===========================================
+# Performance & Monitoring
+# ===========================================
+# Performance monitoring
+.clinic/
+0x/
+
+# Memory dumps
+*.heapsnapshot
+
+# ===========================================
+# Miscellaneous
+# ===========================================
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.gz
+
+# Lock files (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Yarn Integrity file
+.yarn-integrity
+
+# ===========================================
+# Project Specific
+# ===========================================
+# Test uploads
+test-uploads/
+test-proxies/
+test-processed/
+test-previews/
+test-thumbnails/
+test-waveforms/
+test-luts/
+
+# Development databases
+dev.db
+test.db
+
+# Local configuration overrides
+local.config.js
+local.config.json
+
+# ===========================================
+# Keep Important Files
+# ===========================================
+# Keep these files even if they match patterns above
+!package-lock.json
+!.gitkeep
+!README.md
+!LICENSE
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!CHANGELOG.md
+!TODO.md
