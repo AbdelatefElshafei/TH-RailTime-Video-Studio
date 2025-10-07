@@ -1,0 +1,17 @@
+{
+  "name": "th-realtime-audionormalize-plugin",
+  "version": "1.0.0",
+  "description": "Audio normalization plugin for TH-RailTime-Video-Studio",
+  "main": "index.js",
+  "keywords": ["audio", "normalize", "volume", "effect", "ffmpeg", "plugin"],
+  "author": "TH-RailTime-Video-Studio Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "package.json"
+  ]
+}

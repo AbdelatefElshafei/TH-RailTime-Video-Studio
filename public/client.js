@@ -59,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewContent = document.getElementById('preview-content');
     const previewImage = document.getElementById('preview-image');
     const previewVideo = document.getElementById('preview-video');
+    const previewPlaceholder = document.getElementById('preview-placeholder');
     const interactiveOverlay = document.getElementById('interactive-overlay');
     const maskOverlayCanvas = document.getElementById('mask-overlay-canvas');
     const maskControls = document.getElementById('mask-controls');
@@ -355,6 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
             switchToStaticPreviewMode();
             requestStaticFrameThrottled(previewTimestamp);
         }
+        centerPreviewContent();
     }
     
     function formatTime(seconds) {
@@ -375,6 +377,60 @@ document.addEventListener('DOMContentLoaded', () => {
         if (project.settings.width && project.settings.height) {
             previewContent.style.aspectRatio = `${project.settings.width} / ${project.settings.height}`;
         }
+        centerPreviewContent();
+    }
+    
+    function centerPreviewContent() {
+        // Ensure the preview content is always centered
+        const previewWindow = document.getElementById('preview-window');
+        const previewRect = previewWindow.getBoundingClientRect();
+        
+        console.log('🎯 Centering preview content...');
+        console.log('📐 Preview window rect:', previewRect);
+        console.log('📐 Project settings:', project.settings);
+        
+        // Use absolute positioning for perfect centering
+        previewContent.style.position = 'absolute';
+        previewContent.style.top = '50%';
+        previewContent.style.left = '50%';
+        previewContent.style.transform = 'translate(-50%, -50%)';
+        previewContent.style.zIndex = '10';
+        
+        // Ensure it doesn't exceed the container bounds
+        if (project.settings.width && project.settings.height) {
+            const aspectRatio = project.settings.width / project.settings.height;
+            const maxWidth = Math.min(previewRect.width * 0.9, previewRect.height * 0.9 * aspectRatio);
+            const maxHeight = Math.min(previewRect.height * 0.9, previewRect.width * 0.9 / aspectRatio);
+            
+            previewContent.style.maxWidth = `${maxWidth}px`;
+            previewContent.style.maxHeight = `${maxHeight}px`;
+            
+            console.log('📏 Calculated size:', { maxWidth, maxHeight, aspectRatio });
+        } else {
+            // Default size if no project settings
+            previewContent.style.maxWidth = `${previewRect.width * 0.9}px`;
+            previewContent.style.maxHeight = `${previewRect.height * 0.9}px`;
+        }
+        
+        // Force visibility
+        previewContent.style.display = 'block';
+        previewContent.style.visibility = 'visible';
+        
+        // Update placeholder visibility
+        updatePreviewPlaceholder();
+        
+        console.log('✅ Preview content centered');
+    }
+    
+    function updatePreviewPlaceholder() {
+        // Check if there are any clips in the project
+        const hasClips = project.tracks.some(track => track.clips.length > 0);
+        
+        if (hasClips) {
+            previewPlaceholder.classList.add('hidden');
+        } else {
+            previewPlaceholder.classList.remove('hidden');
+        }
     }
     
     function renderAll() {
@@ -386,6 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPropertiesPanel();
         renderMediaBin();
         renderInteractiveOverlay();
+        centerPreviewContent();
+        updatePreviewPlaceholder();
     }
 
     function renderTracks() {
@@ -1132,20 +1190,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     importButton.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', async () => {
-        for (const file of fileInput.files) {
-            const formData = new FormData();
-            formData.append('media', file);
-            const response = await fetch('/upload', { method: 'POST', body: formData });
-            const result = await response.json();
-            if(result.success) {
-                mediaBinFiles.push({ 
-                    filename: result.filename, 
-                    originalName: result.originalName, 
-                    type: file.type.split('/')[0],
-                    hasProxy: result.hasProxy
-                });
+        console.log('📁 Files selected for upload:', fileInput.files.length);
+        
+        // Show upload progress
+        const uploadStatus = document.createElement('div');
+        uploadStatus.id = 'upload-status';
+        uploadStatus.className = 'fixed top-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+        uploadStatus.innerHTML = '📤 Uploading files...';
+        document.body.appendChild(uploadStatus);
+        
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            console.log('📤 Uploading file:', file.name, 'Type:', file.type, 'Size:', file.size);
+            
+            // Update status
+            uploadStatus.innerHTML = `📤 Uploading ${i + 1}/${fileInput.files.length}: ${file.name}`;
+            
+            try {
+                const formData = new FormData();
+                formData.append('media', file);
+                const response = await fetch('/upload', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                console.log('📦 Upload response:', result);
+                
+                if(result.success) {
+                    const fileInfo = { 
+                        filename: result.filename, 
+                        originalName: result.originalName, 
+                        type: file.type.split('/')[0],
+                        hasProxy: result.hasProxy
+                    };
+                    mediaBinFiles.push(fileInfo);
+                    console.log('✅ File added to media bin:', fileInfo);
+                    
+                    // Update status for video files
+                    if (file.type.startsWith('video/')) {
+                        uploadStatus.innerHTML = `🎬 Processing video ${i + 1}/${fileInput.files.length}: ${file.name}...`;
+                    }
+                } else {
+                    console.error('❌ Upload failed:', result.message);
+                    alert(`Upload failed: ${result.message}`);
+                }
+            } catch (error) {
+                console.error('❌ Upload error:', error);
+                alert(`Upload error: ${error.message}`);
             }
         }
+        
+        // Hide status after a delay
+        uploadStatus.innerHTML = '✅ Upload completed!';
+        setTimeout(() => {
+            if (uploadStatus.parentNode) {
+                uploadStatus.parentNode.removeChild(uploadStatus);
+            }
+        }, 2000);
+        
+        console.log('📋 Media bin files:', mediaBinFiles);
         renderMediaBin();
     });
 
@@ -1469,6 +1570,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (Math.abs((newEnd - point) * PIXELS_PER_SECOND) < SNAPPING_THRESHOLD) {
                             newStart = point - clip.duration;
                             snapped = true;
+                           
+                           
                             break;
                         }
                     }
@@ -2208,4 +2311,14 @@ document.addEventListener('DOMContentLoaded', () => {
     requestStaticFrame(0);
     
     updateUndoRedoButtons();
+    
+    // Center preview after a short delay to ensure DOM is ready
+    setTimeout(() => {
+        centerPreviewContent();
+    }, 100);
+    
+    // Add window resize listener to keep preview centered
+    window.addEventListener('resize', () => {
+        centerPreviewContent();
+    });
 });

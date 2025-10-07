@@ -1,0 +1,17 @@
+{
+  "name": "th-realtime-fadein-plugin",
+  "version": "1.0.0",
+  "description": "Fade-in transition plugin for TH-RailTime-Video-Studio",
+  "main": "index.js",
+  "keywords": ["video", "fade", "transition", "effect", "ffmpeg", "plugin"],
+  "author": "TH-RailTime-Video-Studio Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "index.js",
+    "README.md",
+    "package.json"
+  ]
+}

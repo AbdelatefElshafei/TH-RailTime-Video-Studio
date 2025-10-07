@@ -733,17 +733,23 @@
         </aside>
 
         <main class="flex-grow flex flex-col">
-            <div class="flex-grow flex">
-                <div id="preview-section" class="flex-grow flex flex-col">
-                    <div id="preview-window" class="flex-grow flex items-center justify-center relative overflow-hidden" style="background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 100%);">
+            <!-- Preview Section - Fixed Height -->
+            <div id="preview-section" class="flex-shrink-0" style="height: 60vh; min-height: 400px; max-height: 80vh;">
+                <div id="preview-window" class="flex items-center justify-center relative overflow-hidden h-full" style="background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f23 100%);">
                         <div class="absolute inset-0 opacity-5">
                             <div class="absolute inset-0" style="background-image: radial-gradient(circle at 25% 25%, rgba(99, 102, 241, 0.3) 0%, transparent 50%), radial-gradient(circle at 75% 75%, rgba(0, 212, 255, 0.3) 0%, transparent 50%);"></div>
                         </div>
                         
-                        <div id="preview-content" class="relative rounded-xl overflow-hidden shadow-2xl" style="aspect-ratio: 16/9; max-width: 90%; max-height: 90%;">
+                        <div id="preview-content" class="absolute rounded-xl overflow-hidden shadow-2xl" style="aspect-ratio: 16/9; max-width: 90%; max-height: 90%; width: fit-content; height: fit-content; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: rgba(0, 0, 0, 0.5); border: 2px solid #4a5568;">
                             <img id="preview-image" class="w-full h-full object-contain block rounded-xl" crossOrigin="anonymous">
                             <video id="preview-video" class="w-full h-full object-contain block hidden rounded-xl" crossOrigin="anonymous"></video>
                             <canvas id="mask-overlay-canvas" class="hidden"></canvas>
+                            <div id="preview-placeholder" class="absolute inset-0 flex items-center justify-center text-gray-400 text-lg">
+                                <div class="text-center">
+                                    <div class="text-4xl mb-2">🎬</div>
+                                    <div>Import media to start editing</div>
+                                </div>
+                            </div>
                             <div id="interactive-overlay" class="hidden rounded-xl">
                                 <div id="selection-box">
                                     <div class="selection-handle nw"></div><div class="selection-handle ne"></div>
@@ -779,7 +785,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <div class="flex-shrink-0 control-panel p-2 flex items-center justify-between">
@@ -862,7 +867,7 @@
                 </div>
             </div>
             
-            <div id="timeline-wrapper" class="flex-shrink-0 h-64 border-t-2 rounded-t-xl overflow-hidden flex" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border-top: 1px solid var(--border-color);">
+            <div id="timeline-wrapper" class="flex-grow border-t-2 rounded-t-xl overflow-hidden flex" style="background: linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%); border-top: 1px solid var(--border-color); min-height: 200px;">
                 <div id="track-headers" class="flex-shrink-0 p-4 pt-0 space-y-3 bg-gray-800"></div>
                 <div id="timeline-scroll-pane" class="flex-grow overflow-x-auto overflow-y-hidden relative">
                     <div id="timeline-container" class="p-4 pt-0 space-y-3 relative w-fit min-h-full">
